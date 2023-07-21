@@ -1,0 +1,57 @@
+
+m	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(’¡åß8ÿë¸§—1
+r	java:S117G"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¾şËàşÿÿÿÿ8ÿë¸§—1
+
+java:S1149"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(Ôô¡Óüÿÿÿÿ8Œì¸§—1
+
+java:S1149W"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(Ôô¡Óüÿÿÿÿ8Œì¸§—1
+U	java:S106"9Replace this use of System.out or System.err by a logger.(Êßå8ì¸§—1
+B
+java:S3457"%String contains no format specifiers.(’¡åß8ì¸§—1
+O
+java:S1135"2Complete the task associated to this TODO comment.(’¡åß8ì¸§—1
+H
+java:S1874"+Remove this use of "URL"; it is deprecated.(‚§ ê8ì¸§—1
+T
+java:S1135"2Complete the task associated to this TODO comment.(Ç›Ë«ıÿÿÿÿ8ì¸§—1
+T
+java:S1135"2Complete the task associated to this TODO comment.(ÃªÑıùÿÿÿÿ8ì¸§—1
+T
+java:S1135"2Complete the task associated to this TODO comment.(Õ¡ÕÅùÿÿÿÿ8ì¸§—1
+U	java:S106&"9Replace this use of System.out or System.err by a logger.(ÅÌÚò8’ì¸§—1
+O
+java:S1135&"2Complete the task associated to this TODO comment.(ÅÌÚò8’ì¸§—1
+O
+java:S1135)"2Complete the task associated to this TODO comment.(–Ú„8’ì¸§—1
+U	java:S106+"9Replace this use of System.out or System.err by a logger.(£îË8’ì¸§—1
+Z	java:S1060"9Replace this use of System.out or System.err by a logger.(å›šÀøÿÿÿÿ8’ì¸§—1
+U	java:S1063"9Replace this use of System.out or System.err by a logger.(ÌÒÅ¾8’ì¸§—1
+Z	java:S1068"9Replace this use of System.out or System.err by a logger.(šë”áùÿÿÿÿ8“ì¸§—1
+U	java:S106<"9Replace this use of System.out or System.err by a logger.(ø¯àÄ8“ì¸§—1
+U	java:S106D"9Replace this use of System.out or System.err by a logger.(ğ«¬8”ì¸§—1
+G
+java:S3457G"%String contains no format specifiers.(¾şËàşÿÿÿÿ8”ì¸§—1
+T
+java:S1135G"2Complete the task associated to this TODO comment.(¾şËàşÿÿÿÿ8”ì¸§—1
+H
+java:S1874H"+Remove this use of "URL"; it is deprecated.(ıŞŸ°8”ì¸§—1
+T
+java:S1135K"2Complete the task associated to this TODO comment.(Ç›Ë«ıÿÿÿÿ8”ì¸§—1
+T
+java:S1135L"2Complete the task associated to this TODO comment.(ÃªÑıùÿÿÿÿ8•ì¸§—1
+T
+java:S1135M"2Complete the task associated to this TODO comment.(Õ¡ÕÅùÿÿÿÿ8•ì¸§—1
+[
+java:S4719R"9Replace charset name argument with StandardCharsets.UTF_8(Ùú¥ôÿÿÿÿÿ8•ì¸§—1
+U	java:S106^"9Replace this use of System.out or System.err by a logger.(ÅÌÚò8–ì¸§—1
+O
+java:S1135^"2Complete the task associated to this TODO comment.(ÅÌÚò8–ì¸§—1
+O
+java:S1135a"2Complete the task associated to this TODO comment.(–Ú„8–ì¸§—1
+U	java:S106c"9Replace this use of System.out or System.err by a logger.(£îË8–ì¸§—1
+Z	java:S106h"9Replace this use of System.out or System.err by a logger.(å›šÀøÿÿÿÿ8–ì¸§—1
+U	java:S106k"9Replace this use of System.out or System.err by a logger.(ÌÒÅ¾8–ì¸§—1
+Z	java:S106p"9Replace this use of System.out or System.err by a logger.(šë”áùÿÿÿÿ8—ì¸§—1
+U	java:S106t"9Replace this use of System.out or System.err by a logger.(ø¯àÄ8—ì¸§—1
+X
+java:S1128";Remove this unused import 'java.net.MalformedURLException'.(ªËŞˆ8—ì¸§—1
