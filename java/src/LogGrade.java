@@ -1,3 +1,8 @@
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import okhttp3.*;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -9,21 +14,18 @@ import java.net.URL;
 import java.util.Scanner;
 public class LogGrade {
     // three fields: utorid, course, and grade.
-    private String utorid;
     private String course;
     private int grade;
     // constructor
     public LogGrade() {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your utorid: ");
-        utorid = scanner.nextLine();
         System.out.print("Enter your course: ");
         course = scanner.nextLine();
         System.out.print("Enter your grade: ");
         grade = scanner.nextInt();
     }
 
-    public void logGrade() throws IOException {
+    public void logGrade() throws IOException, JSONException, UnirestException {
         String POST_URL = String.format("https://grade-logging-api.chenpan.ca/grade"); // TODO
         URL obj = new URL(POST_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -32,7 +34,6 @@ public class LogGrade {
         con.setRequestProperty("Content-type", "application/json"); // TODO
         // TODO: set request body.
         JSONObject requestBody = new JSONObject();
-        requestBody.put("utorid", this.utorid);
         requestBody.put("course", this.course);
         requestBody.put("grade", this.grade);
         con.setDoOutput(true);
@@ -72,5 +73,43 @@ public class LogGrade {
         else {
             System.out.println("GET request did not work.");
         }
+
+        // Okhttp3:
+
+//        OkHttpClient client = new OkHttpClient().newBuilder()
+//                .build();
+//        MediaType mediaType = MediaType.parse("application/json");
+//        JSONObject requestBody = new JSONObject();
+//        requestBody.put("course", this.course);
+//        requestBody.put("grade", this.grade);
+//        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+//        Request request = new Request.Builder()
+//                .url("https://grade-logging-api.chenpan.ca/grade")
+//                .method("POST", body)
+//                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+//                .addHeader("Content-Type", "application/json")
+//                .build();
+//        Response response = client.newCall(request).execute();
+//        if(response.code() == 200) {
+//            // print response body
+//            System.out.println(response.body().string());
+//        }
+
+        // Unirest:
+
+//        JSONObject requestBody = new JSONObject();
+//        requestBody.put("course", this.course);
+//        requestBody.put("grade", this.grade);
+//        HttpResponse<String> response = Unirest.post("https://grade-logging-api.chenpan.ca/grade")
+//                .header("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+//                .header("Content-Type", "application/json")
+//                .body(requestBody.toString())
+//                .asString();
+//
+//        if(response.getStatus() == 200) {
+//            // print response body
+//            System.out.println(response.getBody());
+//        }
+
     }
 }
