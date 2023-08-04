@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public class SeeMyTeamMembers {
         utorid = scanner.nextLine();
     }
 
-    public void seeMyTeamMembers() throws IOException {
+    public void seeMyTeamMembers() throws IOException, JSONException {
         String POST_URL = String.format("https://grade-logging-api.chenpan.ca/teamMembers?utorid=%s", this.utorid); // TODO
         URL obj = new URL(POST_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

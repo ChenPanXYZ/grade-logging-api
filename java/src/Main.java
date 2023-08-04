@@ -16,7 +16,8 @@ public class Main {
     public static void main(String[] args) throws IOException, JSONException, UnirestException {
         // check if environment variable is set or not.
         if(System.getenv("API_TOKEN") == null) {
-            System.out.println("Please add API_TOKEN in your project's environment variables.");
+            // Ask the user to set the environment variable.
+            System.out.println("Please set the environment variable API_TOKEN to your API token.");
             return;
         }
         boolean exitRequested = false;

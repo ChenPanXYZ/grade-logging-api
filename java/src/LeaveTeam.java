@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -17,7 +18,7 @@ public class LeaveTeam {
         utorid = scanner.nextLine();
     }
 
-    public void leaveTeam() throws IOException {
+    public void leaveTeam() throws IOException, JSONException {
         String POST_URL = String.format("https://grade-logging-api.chenpan.ca/leaveTeam"); // TODO
         URL obj = new URL(POST_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

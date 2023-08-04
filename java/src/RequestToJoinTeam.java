@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public class RequestToJoinTeam {
         utorid = scanner.nextLine();
     }
 
-    public void getAllTeams() throws IOException {
+    public void getAllTeams() throws IOException, JSONException {
         String GET_URL = String.format("https://grade-logging-api.chenpan.ca/teams"); // TODO
         URL obj = new URL(GET_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -61,7 +62,7 @@ public class RequestToJoinTeam {
         }
     }
 
-    public void requestToJoinTeam() throws IOException {
+    public void requestToJoinTeam() throws IOException, JSONException {
         getAllTeams();
 
         Scanner scanner = new Scanner(System.in);

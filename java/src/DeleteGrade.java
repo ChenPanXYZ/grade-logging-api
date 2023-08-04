@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,7 +21,7 @@ public class DeleteGrade {
         course = scanner.nextLine();
     }
 
-    public void deleteGrade() throws IOException {
+    public void deleteGrade() throws IOException, JSONException {
         String POST_URL = String.format("https://grade-logging-api.chenpan.ca/grade"); // TODO
         URL obj = new URL(POST_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

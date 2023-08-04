@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,7 +21,7 @@ public class FormTeam {
         name = scanner.nextLine();
     }
 
-    public void formTeam() throws IOException {
+    public void formTeam() throws IOException, JSONException {
         String POST_URL = String.format("https://grade-logging-api.chenpan.ca/team"); // TODO
         URL obj = new URL(POST_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

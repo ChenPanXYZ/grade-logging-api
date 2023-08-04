@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public class HandleNewMemberRequest {
         utorid = scanner.nextLine();
     }
 
-    public void getRequestList() throws IOException {
+    public void getRequestList() throws IOException, JSONException {
         String GET_URL = String.format("https://grade-logging-api.chenpan.ca/teamRequestList?utorid=%s", this.utorid); // TODO
         URL obj = new URL(GET_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -61,7 +62,7 @@ public class HandleNewMemberRequest {
         }
     }
 
-    public void handleNewMemberRequest() throws IOException {
+    public void handleNewMemberRequest() throws IOException, JSONException {
         getRequestList();
 
         Scanner scanner = new Scanner(System.in);

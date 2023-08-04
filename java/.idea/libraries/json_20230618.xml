@@ -2,8 +2,12 @@
   <library name="json-20230618">
     <CLASSES>
       <root url="jar://$USER_HOME$/Downloads/json-20230618.jar!/" />
+      <root url="file://$PROJECT_DIR$/jars/okhttp" />
+      <root url="file://$PROJECT_DIR$/jars/unirest" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/jars/okhttp" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/jars/unirest" recursive="false" />
   </library>
 </component>
