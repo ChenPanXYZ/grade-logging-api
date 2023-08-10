@@ -1,6 +1,11 @@
+import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,118 +13,151 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
-public class HandleNewMemberRequest {
-    private String utorid;
+public class HandleNewMemberRequest extends Subpage {
+    private JButton goBackButton;
+
+    private JButton acceptButton, rejectButton;
+    private CardLayout cardLayout;
+    private JPanel cards;
+
+    private JLabel requestListLabel = new JLabel("");
+
+    private JTextField studentField;
     // constructor
-    public HandleNewMemberRequest() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your utorid: ");
-        utorid = scanner.nextLine();
-    }
+    public HandleNewMemberRequest(CardLayout cardLayout, JPanel cards) {
+        this.cardLayout = cardLayout;
+        this.cards = cards;
 
-    public void getRequestList() throws IOException, JSONException {
-        String GET_URL = String.format("https://grade-logging-api.chenpan.ca/teamRequestList?utorid=%s", this.utorid); // TODO
-        URL obj = new URL(GET_URL);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty ("Authorization", System.getenv("API_TOKEN")); // TODO
-        con.setRequestProperty("Content-type", "application/json"); // TODO
-        // TODO: set request body.
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+        setLayout(new GridLayout(4, 2));
 
+        acceptButton = new JButton("Accept");
+        rejectButton = new JButton("Reject");
+        goBackButton = new JButton("Go Back to Menu");
+        studentField = new JTextField();
+
+        add(new JLabel("Request List:"));
+        add(this.requestListLabel);
+        add(new JLabel("Who to accept/reject:"));
+        add(studentField);
+        add(acceptButton);
+        add(rejectButton);
+        add(goBackButton);
+
+        acceptButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Perform the grade retrieval logic here
+                String utorid = studentField.getText();
+                // For example: Display the retrieved grade in a dialog box
+                try {
+                    JSONObject response = HandleNewMemberRequest.handleNewMemberRequest(utorid, 1);
+                    JOptionPane.showMessageDialog(cards, response.getString("message"));
+                }
+                catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                catch (JSONException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                // Switch back to the main panel
+                try {
+                    run();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
-            JSONObject responseObj = new JSONObject(response.toString());
-            in.close();
-            System.out.println(responseObj); // TODO
-        }
+        });
 
-        // TODO: Students are required to read API to understand what is the response code for each case.
-        else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-            System.out.println("Grade not found.");
-        }
+        rejectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Perform the grade retrieval logic here
+                String utorid = studentField.getText();
+                // For example: Display the retrieved grade in a dialog box
+                try {
+                    JSONObject response = HandleNewMemberRequest.handleNewMemberRequest(utorid, 0);
+                    JOptionPane.showMessageDialog(cards, response.getString("message"));
+                }
+                catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                catch (JSONException ex) {
+                    throw new RuntimeException(ex);
+                }
 
-        // 409
-        else if (responseCode == HttpURLConnection.HTTP_CONFLICT) {
-            System.out.println("409 Conflict");
-        }
-        else if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-            System.out.println("400 Bad Request");
-        }
-
-        // 401
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            System.out.println("401 Unauthorized");
-        }
-
-        else {
-            System.out.println("GET request did not work.");
-        }
+                // Switch back to the main panel
+                try {
+                    run();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
     }
 
-    public void handleNewMemberRequest() throws IOException, JSONException {
-        getRequestList();
+    public JSONObject getRequestList() throws IOException, JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        Request request = new Request.Builder()
+                .url(String.format("https://grade-logging-api.chenpan.ca/teamRequestList"))
+                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Content-Type", "application/json")
+                .build();
+        Response response = client.newCall(request).execute();
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the utorid you want to handle the request for: ");
-        String newMemberUtorid = scanner.nextLine();
+        // response body is a json object.
+        JSONObject responseObj = new JSONObject(response.body().string());
+        return responseObj;
+    }
 
-        System.out.print("Do you want to accept or reject the request? (1: accept/0: reject): ");
-        String decision = scanner.nextLine();
-
-
-        String POST_URL = String.format("https://grade-logging-api.chenpan.ca/handleNewMemberRequest"); // TODO
-        URL obj = new URL(POST_URL);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("PUT");
-        con.setRequestProperty ("Authorization", System.getenv("API_TOKEN")); // TODO
-        con.setRequestProperty("Content-type", "application/json"); // TODO
-        // TODO: set request body.
+    public static JSONObject handleNewMemberRequest(String newMemberUtorid, int decision) throws IOException, JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
         JSONObject requestBody = new JSONObject();
-        requestBody.put("utorid", this.utorid);
         requestBody.put("newMemberUtorid", newMemberUtorid);
         requestBody.put("decision", decision);
-        con.setDoOutput(true);
-        con.getOutputStream().write(requestBody.toString().getBytes("UTF-8"));
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+        Request request = new Request.Builder()
+                .url("https://grade-logging-api.chenpan.ca/handleNewMemberRequest")
+                .method("PUT", body)
+                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Content-Type", "application/json")
+                .build();
+        Response response = client.newCall(request).execute();
+        JSONObject responseObj = new JSONObject(response.body().string());
+        return responseObj;
+    }
 
+    @Override
+    public void run() throws IOException {
+        System.out.println("HandleNewMemberRequest.run");
+        JSONObject requetListResponse = this.getRequestList();
+        if(requetListResponse.getInt("status_code") == 200) {
+            // successful.
+            StringBuilder msg = new StringBuilder();
+            for(int i = 0; i < requetListResponse.getJSONArray("requestList").length(); i++) {
+                // Add to string builder with. For the last one, not to end with ,.
+                if(i != requetListResponse.getJSONArray("requestList").length() - 1) {
+                    msg.append(requetListResponse.getJSONArray("requestList").get(i).toString()).append(", ");
+                }
+                else {
+                    msg.append(requetListResponse.getJSONArray("requestList").get(i).toString());
+                }
             }
-            JSONObject responseObj = new JSONObject(response.toString());
-            in.close();
-            System.out.println(responseObj); // TODO
+            this.requestListLabel.setText(msg.toString());
         }
-
-        // TODO: Students are required to read API to understand what is the response code for each case.
-        else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-            System.out.println("Grade not found.");
-        }
-
-        // 409
-        else if (responseCode == HttpURLConnection.HTTP_CONFLICT) {
-            System.out.println("409 Conflict");
-        }
-        else if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-            System.out.println("400 Bad Request");
-        }
-
-        // 401
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            System.out.println("401 Unauthorized");
-        }
-
         else {
-            System.out.println("GET request did not work.");
+            // error.
+            JOptionPane.showMessageDialog(this.cards, requetListResponse.getString("message"));
+            // go back to main.
+            this.cardLayout.show(this.cards, "main");
         }
     }
+
+    private void clear() {
+        studentField.setText("");
+    }
+
 }

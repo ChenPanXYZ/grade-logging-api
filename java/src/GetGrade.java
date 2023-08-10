@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class GetGrade extends Subpage{
     // two fields: utorid, and course.
-    private JButton submitButton;
+    private JButton submitButton, goBackButton;
     private JTextField studentField, courseField;
     // constructor
     public GetGrade(CardLayout cardLayout, JPanel cards) {
@@ -22,7 +22,6 @@ public class GetGrade extends Subpage{
         submitButton = new JButton("Submit");
         studentField = new JTextField();
         courseField = new JTextField();
-        submitButton = new JButton("Submit");
 
         add(new JLabel("Student:"));
         add(studentField);
