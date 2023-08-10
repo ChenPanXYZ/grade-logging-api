@@ -1,6 +1,4 @@
 
-P
- src/GreetingProgramTestTest.java,a\8\a856c961fa5ea00bfc21d068b528a245ce0140b2
 >
 src/asfaf.puml,3\c\3cd8567d9533f6a3491fc48d4998766e044a6e3d
 B
