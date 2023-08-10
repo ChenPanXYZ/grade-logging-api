@@ -1,9 +1,5 @@
-import com.mashape.unirest.http.exceptions.UnirestException;
-import org.json.JSONException;
-
 import java.io.IOException;
-import java.util.Scanner;
-
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,11 +9,8 @@ public class Main extends JFrame{
     private JPanel cards;
     private CardLayout cardLayout;
 
-    private JTextField studentField, courseField, gradeField;
-    private JButton submitButton;
 
-
-    public Main() {
+    public Main() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         initUI();
     }
 
@@ -26,43 +19,86 @@ public class Main extends JFrame{
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         cards = new JPanel(new CardLayout());
         cardLayout = (CardLayout) cards.getLayout();
+
         JPanel mainPanel = new JPanel();
         cards.add(mainPanel, "main");
         // Define subpages.
-
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         // Get Grade.
         JButton getGradeButton = new JButton("Get a Grade");
-        mainPanel.add(getGradeButton);
-        getGradeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(cards, "getGradePage");
-            }
-        });
-        cards.add(new GetGrade(cardLayout, cards), "getGradePage");
-
         // Log Grade
         JButton logGradeButton = new JButton("Log a Grade");
+        JButton DeleteGradeButton = new JButton("Delete a Grade (for regrading purpose)");
+        JButton SeeMyTeamMembersButton = new JButton("See my team members");
+        JButton FormTeamButton = new JButton("Form a team");
+        JButton HandleNewMemberRequestButton = new JButton("Handle new member request");
+        JButton RequestToJoinTeamButton = new JButton("Join a team");
+        JButton LeaveTeamButton = new JButton("Leave my team");
+
+        // Add a text: Grade Management
+        mainPanel.add(new JLabel("Grade Management"));
+        mainPanel.add(getGradeButton);
         mainPanel.add(logGradeButton);
-        logGradeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(cards, "logGradePage");
+        mainPanel.add(DeleteGradeButton);
+        // Add a text: Team Management
+        mainPanel.add(new JLabel("Team Management"));
+        mainPanel.add(SeeMyTeamMembersButton);
+        mainPanel.add(FormTeamButton);
+        mainPanel.add(HandleNewMemberRequestButton);
+        mainPanel.add(RequestToJoinTeamButton);
+        mainPanel.add(LeaveTeamButton);
+
+
+        // Adding navigations.
+        JButton[] buttons = {getGradeButton, logGradeButton, DeleteGradeButton, SeeMyTeamMembersButton, FormTeamButton, RequestToJoinTeamButton, LeaveTeamButton};
+        Class<?>[] classes = {GetGrade.class, LogGrade.class, DeleteGrade.class, SeeMyTeamMembers.class, FormTeam.class, RequestToJoinTeam.class, LeaveTeam.class};
+        String[] pageNames = {"getGradePage", "logGradePage", "deleteGradePage", "seeMyTeamMembersPage", "formTeamPage", "requestToJoinTeamPage", "leaveTeamPage"};
+        Subpage[] cardComponents = new Subpage[buttons.length];
+        for(int i = 0; i < buttons.length; i++) {
+            int finalI = i;
+            buttons[i].addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    cardLayout.show(cards, pageNames[finalI]);
+                    try {
+                        cardComponents[finalI].run();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+            try
+            {
+                Subpage cardComponent = (Subpage) classes[i].getDeclaredConstructor(CardLayout.class, JPanel.class).newInstance(cardLayout, cards);
+                cardComponents[i] = cardComponent;
+                cards.add(cardComponent, pageNames[finalI]);
             }
-        });
-        cards.add(new LogGrade(cardLayout, cards), "logGradePage");
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
 
         add(cards);
-
         pack();
         setLocationRelativeTo(null);
     }
 
 
     public static void main(String[] args) {
+        // The program starts here.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new Main().setVisible(true);
+                try {
+                    new Main().setVisible(true);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

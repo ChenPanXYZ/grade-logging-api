@@ -16,7 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
-public class LogGrade extends JPanel {
+public class LogGrade extends Subpage {
     private JButton submitButton, goBackButton;
     private JTextField courseField, gradeField;
     // constructor
@@ -54,12 +54,11 @@ public class LogGrade extends JPanel {
 
                 // For example: Display the retrieved grade in a dialog box
                 try {
-                    JOptionPane.showMessageDialog(cards, LogGrade.logGrade(course, grade));
+                    JSONObject response = LogGrade.logGrade(course, grade);
+                    JOptionPane.showMessageDialog(cards, response.getString("message"));
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 } catch (JSONException ex) {
-                    throw new RuntimeException(ex);
-                } catch (UnirestException ex) {
                     throw new RuntimeException(ex);
                 }
 
@@ -74,7 +73,7 @@ public class LogGrade extends JPanel {
         gradeField.setText("");
     }
 
-    public static String logGrade(String course, String grade) throws IOException, JSONException, UnirestException {
+    public static JSONObject logGrade(String course, String grade) throws IOException, JSONException {
         // Okhttp3:
 
         OkHttpClient client = new OkHttpClient().newBuilder()
@@ -92,12 +91,12 @@ public class LogGrade extends JPanel {
                 .build();
         Response response = client.newCall(request).execute();
         JSONObject responseObj = new JSONObject(response.body().string());
-        if(response.code() == 200) {
-            return ("Grade logged successfully!");
-        }
-        else {
-            return((String) responseObj.get("message"));
-        }
+        return responseObj;
+
+    }
+
+    @Override
+    public void run() throws IOException {
 
     }
 }

@@ -11,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-public class GetGrade extends JPanel{
+public class GetGrade extends Subpage{
     // two fields: utorid, and course.
     private JButton submitButton;
     private JTextField studentField, courseField;
@@ -39,12 +39,20 @@ public class GetGrade extends JPanel{
 
                 // For example: Display the retrieved grade in a dialog box
                 try {
-                    JOptionPane.showMessageDialog(cards, GetGrade.getGrade(utorid, course));
-                } catch (IOException ex) {
+                    JSONObject response = GetGrade.getGrade(utorid, course);
+                    if (response.getInt("status_code") == 200) {
+                        // successful.
+                        JOptionPane.showMessageDialog(cards, String.format("Grade: %s", response.getNumber("grade")));
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(cards, response.getString("message"));
+                    }
+
+                }
+                catch (IOException ex) {
                     throw new RuntimeException(ex);
-                } catch (JSONException ex) {
-                    throw new RuntimeException(ex);
-                } catch (UnirestException ex) {
+                }
+                catch (JSONException ex) {
                     throw new RuntimeException(ex);
                 }
 
@@ -61,7 +69,7 @@ public class GetGrade extends JPanel{
     }
 
 
-    public static String getGrade(String utorid, String course) throws IOException, JSONException, UnirestException {
+    public static JSONObject getGrade(String utorid, String course) throws IOException, JSONException {
         // Okhttp3:
 
         OkHttpClient client = new OkHttpClient().newBuilder()
@@ -75,11 +83,11 @@ public class GetGrade extends JPanel{
 
         // response body is a json object.
         JSONObject responseObj = new JSONObject(response.body().string());
-        if(response.code() == 200) {
-            return (String.format("Grade is %s", responseObj.get("grade")));
-        }
+        return responseObj;
+    }
 
+    @Override
+    public void run() throws IOException {
 
-        return (String) responseObj.get("message");
     }
 }

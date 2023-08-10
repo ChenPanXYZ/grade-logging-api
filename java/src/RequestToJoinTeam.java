@@ -1,6 +1,11 @@
+import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,113 +13,126 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
-public class RequestToJoinTeam {
-    private String utorid;
-    // constructor
-    public RequestToJoinTeam() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your utorid: ");
-        utorid = scanner.nextLine();
-    }
+public class RequestToJoinTeam extends Subpage {
+    private JButton submitButton, goBackButton;
 
-    public void getAllTeams() throws IOException, JSONException {
-        String GET_URL = String.format("https://grade-logging-api.chenpan.ca/teams"); // TODO
-        URL obj = new URL(GET_URL);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty ("Authorization", System.getenv("API_TOKEN")); // TODO
-        con.setRequestProperty("Content-type", "application/json"); // TODO
-        // TODO: set request body.
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+    private JLabel allTeamsLabel = new JLabel("");
+    private JTextField nameField;
+    private CardLayout cardLayout;
+    private JPanel cards;
 
+    public RequestToJoinTeam(CardLayout cardLayout, JPanel cards) {
+        this.cardLayout = cardLayout;
+        this.cards = cards;
+        this.setLayout(new GridLayout(3, 1));
+
+        add(new JLabel("These are all the teams:"));
+        add(this.allTeamsLabel);
+        nameField = new JTextField();
+        submitButton = new JButton("Submit");
+        goBackButton = new JButton("Go Back to Menu");
+        add(new JLabel("Team Name:"));
+        add(nameField);
+        add(submitButton);
+        add(goBackButton);
+        goBackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(cards, "main");
             }
-            JSONObject responseObj = new JSONObject(response.toString());
-            in.close();
-            System.out.println(responseObj); // TODO
-        }
+        });
 
-        // TODO: Students are required to read API to understand what is the response code for each case.
-        else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-            System.out.println("Grade not found.");
-        }
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Perform the grade retrieval logic here
+                String name = nameField.getText();
 
-        // 409
-        else if (responseCode == HttpURLConnection.HTTP_CONFLICT) {
-            System.out.println("409 Conflict");
-        }
-        else if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-            System.out.println("400 Bad Request");
-        }
+                // For example: Display the retrieved grade in a dialog box
+                try {
+                    JSONObject response = RequestToJoinTeam.requestToJoinTeam(name);
+                    JOptionPane.showMessageDialog(cards, response.getString("message"));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                } catch (JSONException ex) {
+                    throw new RuntimeException(ex);
+                }
 
-        // 401
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            System.out.println("401 Unauthorized");
-        }
-
-        else {
-            System.out.println("GET request did not work.");
-        }
+                // Switch back to the main panel
+                cardLayout.show(cards, "main");
+                clear();
+            }
+        });
     }
 
-    public void requestToJoinTeam() throws IOException, JSONException {
-        getAllTeams();
+    public JSONObject getAllTeams() throws IOException, JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        Request request = new Request.Builder()
+                .url(String.format("https://grade-logging-api.chenpan.ca/teams"))
+                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Content-Type", "application/json")
+                .build();
+        Response response = client.newCall(request).execute();
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the team name you want to join: ");
-        String name = scanner.nextLine();
+        // response body is a json object.
+        JSONObject responseObj = new JSONObject(response.body().string());
+        return responseObj;
+    }
 
-        String POST_URL = String.format("https://grade-logging-api.chenpan.ca/requestJoinTeam"); // TODO
-        URL obj = new URL(POST_URL);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("PUT");
-        con.setRequestProperty ("Authorization", System.getenv("API_TOKEN")); // TODO
-        con.setRequestProperty("Content-type", "application/json"); // TODO
-        // TODO: set request body.
+    public static JSONObject requestToJoinTeam(String name) throws IOException, JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
         JSONObject requestBody = new JSONObject();
-        requestBody.put("utorid", this.utorid);
         requestBody.put("name", name);
-        con.setDoOutput(true);
-        con.getOutputStream().write(requestBody.toString().getBytes("UTF-8"));
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+        Request request = new Request.Builder()
+                .url("https://grade-logging-api.chenpan.ca/requestJoinTeam")
+                .method("PUT", body)
+                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Content-Type", "application/json")
+                .build();
+        Response response = client.newCall(request).execute();
+        JSONObject responseObj = new JSONObject(response.body().string());
+        return responseObj;
+    }
 
-            }
-            JSONObject responseObj = new JSONObject(response.toString());
-            in.close();
-            System.out.println(responseObj); // TODO
-        }
+    @Override
+    public void run() throws IOException {
+        JSONObject seeMyTeamMemberResponse = SeeMyTeamMembers.seeMyTeamMembers(); //Reuse this api to check if the user has already been in a form. Note that if not in a team already, 404 error will be received.
 
-        // TODO: Students are required to read API to understand what is the response code for each case.
-        else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-            System.out.println("Grade not found.");
+        if (seeMyTeamMemberResponse.getInt("status_code") == 200) {
+            JOptionPane.showMessageDialog(this.cards, "You have already been in a team.");
+            this.cardLayout.show(this.cards, "main");
         }
-
-        // 409
-        else if (responseCode == HttpURLConnection.HTTP_CONFLICT) {
-            System.out.println("409 Conflict");
-        }
-        else if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-            System.out.println("400 Bad Request");
-        }
-
-        // 401
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            System.out.println("401 Unauthorized");
-        }
-
         else {
-            System.out.println("GET request did not work.");
+            // get all vailable teams.
+            JSONObject getAllTeamsResponse = getAllTeams();
+            if (getAllTeamsResponse.getInt("status_code") == 200) {
+                // set allTeamsLabel.
+                StringBuilder msg = new StringBuilder();
+                for(int i = 0; i < getAllTeamsResponse.getJSONArray("teams").length(); i++) {
+                    // Add to string builder with ,. For the last one, not to end with ,.
+                    if(i != getAllTeamsResponse.getJSONArray("teams").length() - 1) {
+                        msg.append(getAllTeamsResponse.getJSONArray("teams").get(i).toString()).append(", ");
+                    }
+                    else {
+                        msg.append(getAllTeamsResponse.getJSONArray("teams").get(i).toString());
+                    }
+                }
+                // modify this.msg
+                this.allTeamsLabel.setText(msg.toString());
+            }
+            else {
+                // Something is wrong, failed loading team names.
+                JOptionPane.showMessageDialog(this.cards, "You have already been in a team.");
+                this.cardLayout.show(this.cards, "main");
+            }
         }
     }
+    private void clear() {
+        nameField.setText("");
+    }
+
 }
