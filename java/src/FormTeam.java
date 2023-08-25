@@ -64,7 +64,7 @@ public class FormTeam extends Subpage {
         nameField.setText("");
     }
 
-    public void run() throws IOException {
+    public void run() throws IOException, JSONException {
         JSONObject seeMyTeamMemberResponse = SeeMyTeamMembers.seeMyTeamMembers(); //Reuse this api to check if the user has already been in a form. Note that if not in a team already, 404 error will be received.
 
         if (seeMyTeamMemberResponse.getInt("status_code") == 200) {

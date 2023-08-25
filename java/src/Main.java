@@ -51,7 +51,7 @@ public class Main extends JFrame{
 
         // Adding navigations.
         JButton[] buttons = {getGradeButton, logGradeButton, DeleteGradeButton, SeeMyTeamMembersButton, FormTeamButton, RequestToJoinTeamButton, LeaveTeamButton, HandleNewMemberRequestButton};
-        Class<?>[] classes = {GetGrade.class, LogGrade.class, DeleteGrade.class, SeeMyTeamMembers.class, FormTeam.class, RequestToJoinTeam.class, LeaveTeam.class, HandleNewMemberRequest.class};
+        Class<?>[] classes = {GetGradeUseCase.class, LogGrade.class, DeleteGrade.class, SeeMyTeamMembers.class, FormTeam.class, RequestToJoinTeam.class, LeaveTeam.class, HandleNewMemberRequest.class};
         String[] pageNames = {"getGradePage", "logGradePage", "deleteGradePage", "seeMyTeamMembersPage", "formTeamPage", "requestToJoinTeamPage", "leaveTeamPage", "handleNewMemberRequestPage"};
         Subpage[] cardComponents = new Subpage[buttons.length];
         for(int i = 0; i < buttons.length; i++) {

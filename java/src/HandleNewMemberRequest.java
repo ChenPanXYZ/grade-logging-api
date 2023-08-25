@@ -63,7 +63,7 @@ public class HandleNewMemberRequest extends Subpage {
                 // Switch back to the main panel
                 try {
                     run();
-                } catch (IOException ex) {
+                } catch (IOException | JSONException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -89,7 +89,7 @@ public class HandleNewMemberRequest extends Subpage {
                 // Switch back to the main panel
                 try {
                     run();
-                } catch (IOException ex) {
+                } catch (IOException | JSONException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -131,7 +131,7 @@ public class HandleNewMemberRequest extends Subpage {
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() throws IOException, JSONException {
         System.out.println("HandleNewMemberRequest.run");
         JSONObject requetListResponse = this.getRequestList();
         if(requetListResponse.getInt("status_code") == 200) {

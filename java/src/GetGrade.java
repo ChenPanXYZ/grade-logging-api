@@ -1,4 +1,3 @@
-import com.mashape.unirest.http.exceptions.UnirestException;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -38,11 +37,10 @@ public class GetGrade extends Subpage{
 
                 // For example: Display the retrieved grade in a dialog box
                 try {
-                    JSONObject response = GetGrade.getGrade(utorid, course);
-                    if (response.getInt("status_code") == 200) {
-                        // successful.
+                    JSONObject response = GetGradeUseCase.getGrade(utorid, course);
+                    // successful.
+                    if (response.getInt("status_code") == 200)
                         JOptionPane.showMessageDialog(cards, String.format("Grade: %s", response.getNumber("grade")));
-                    }
                     else {
                         JOptionPane.showMessageDialog(cards, response.getString("message"));
                     }
