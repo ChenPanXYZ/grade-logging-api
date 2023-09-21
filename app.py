@@ -3,6 +3,8 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from flask import request, abort
 from config import MONGO_DB_CONNECTION_STRING
+import json
+from bson import json_util
 
 client = MongoClient(MONGO_DB_CONNECTION_STRING)
 db = client['grade-logging-api']
@@ -14,41 +16,81 @@ app = Flask(__name__)
 
 
 def api_key_middleware():
-    if request.endpoint in ['signUp']: return
+    if request.endpoint in ['signUp', 'get_all_teams']: return # for these two endpoints, no need to check the token.
+    # for these endpoints, just need to check if the 
     authorization_header = request.headers.get("Authorization")
-    # check if get method.
-    if request.method == 'GET':
-        utorid = request.args.get('utorid') if 'utorid' in request.args else None
-    else:
-        utorid = request.json['utorid'] if 'utorid' in request.json else None
+
+    print(authorization_header)
+
     if not authorization_header:
         return {
             "status_code": 401,
             "message": "Authorization header is required"
         }, 401
-        
-    if utorid is None:
-        return {
-            "status_code": 400,
-            "message": "utorid is required"
-        }, 400
 
-    # check if the token is valid.
     the_doc = TOKEN.find_one({
-        "utorid": utorid
+        "token": authorization_header
     })
-
     if not the_doc:
-        return {
-            "status_code": 401,
-            "message": "The UTORid is not associated with a token. Please sign up first."
-        }, 401
-
-    if authorization_header != the_doc['token']:
         return {
             "status_code": 401,
             "message": "Invalid token"
         }, 401
+
+    myUtorid = the_doc['utorid']
+
+    if request.endpoint in ['get_grade']:
+        # check if the myUtorid is the same as the utorid in the request. (by checking if the token provided matches the utorid)
+
+        # need to check if in the same team.
+        # get myUtorid by token.
+        if request.method == 'GET':
+            utorid = request.args.get('utorid') if 'utorid' in request.args else None
+        else:
+            utorid = request.json['utorid'] if 'utorid' in request.json else None
+            
+
+        # check if same team. Need members contains both utorid and myUtorid.
+        the_doc = TEAM.find_one({
+            "members": {"$in": [myUtorid]}
+        })
+
+        token_this_utorid_doc = TOKEN.find_one({"utorid": utorid})
+
+        if not token_this_utorid_doc:
+            return {
+                "status_code": 401,
+                "message": "The UTORid is not associated with a token. Please sign up first."
+            }, 401
+
+        token_this_utorid = token_this_utorid_doc['token']
+
+
+
+        # check if the utorid is in the team.
+
+        if (token_this_utorid != authorization_header) and (not the_doc or utorid not in the_doc['members']):
+            return {
+                "status_code": 401,
+                "message": "You are not in the same team"
+            }, 401
+    else:
+        # check if the token is valid.
+        the_doc = TOKEN.find_one({
+            "utorid": myUtorid
+        })
+
+        if not the_doc:
+            return {
+                "status_code": 401,
+                "message": "The UTORid is not associated with a token. Please sign up first."
+            }, 401
+
+        if authorization_header != the_doc['token']:
+            return {
+                "status_code": 401,
+                "message": "Invalid token"
+            }, 401
         
 @app.before_request
 def before_request():
@@ -68,9 +110,25 @@ def before_request():
 @app.route('/grade', methods=['POST'])
 def create_grade():
     try:
-        utorid = request.json['utorid'] if 'utorid' in request.json else None
         course = request.json['course'] if 'course' in request.json else None
         grade = request.json['grade'] if 'grade' in request.json else None
+
+        def is_integer(s):
+            try:
+                int(s)
+                return True
+            except ValueError:
+                return False
+        
+        
+
+
+        # get utorid from token.
+        authorization_header = request.headers.get("Authorization")
+        the_doc = TOKEN.find_one({
+            "token": authorization_header
+        })
+        utorid = the_doc['utorid']
 
         if not utorid or not course or not grade:
             return {
@@ -79,11 +137,17 @@ def create_grade():
             }, 400
         
         # check if the grade is valid.
-        if not isinstance(grade, int) or grade < 0 or grade > 100:
+        print(grade)
+        if not is_integer(grade) or int(grade) < 0 or int(grade) > 100:
             return {
                 "status_code": 400,
                 "message": "grade must be an integer between 0 and 100"
             }, 400
+
+        
+        grade = int(grade)
+
+        print(grade)
 
         # check if the grade document already exists
 
@@ -93,9 +157,9 @@ def create_grade():
         })
         if the_doc:
             return {
-                "status_code": 400,
+                "status_code": 409,
                 "message": "Grade already exists"
-            }, 400
+            }, 409
         grade_id = GRADE.insert_one({
             "utorid": utorid,
             "course": course,
@@ -136,7 +200,7 @@ def get_grade():
             "status_code": 200,
             "message": "Grade retrieved successfully",
             "utorid": the_doc['utorid'],
-            "grade": the_doc['grade']
+            "grade": json.loads(json_util.dumps(the_doc))
         }, 200
     except PyMongoError as e:
         print(e)
@@ -153,6 +217,38 @@ def get_grade():
         }, 500
     
 
+@app.route('/grades', methods=['GET'])
+def get_grades():
+    try:
+        utorid = request.args.get('utorid') if 'utorid' in request.args else None
+        the_doc = GRADE.find_one({
+            "utorid": utorid
+        })
+        if not the_doc:
+            return {
+                "status_code": 404,
+                "message": "No grade found"
+            }, 404
+        return {
+            "status_code": 200,
+            "message": "Grades retrieved successfully",
+            "utorid": the_doc['utorid'],
+            "grades": json.loads(json_util.dumps(the_doc))
+        }, 200
+    except PyMongoError as e:
+        print(e)
+        return {
+            "status_code": 500,
+            "message": "Error retrieving grade"
+        }, 500
+    except Exception as e:
+        print("error")
+        print(e)
+        return {
+            "status_code": 500,
+            "message": "Error retrieving grade"
+        }, 500
+
 # An API that updates a grade document.
 # The request body should be a JSON object with the following fields:
 # utorid: the utorid of the student
@@ -164,7 +260,11 @@ def get_grade():
 @app.route('/grade', methods=['PUT'])
 def update_grade():
     try:
-        utorid = request.json['utorid'] if 'utorid' in request.json else None
+        authorization_header = request.headers.get("Authorization")
+        the_doc = TOKEN.find_one({
+            "token": authorization_header
+        })
+        utorid = the_doc['utorid']
         course = request.json['course'] if 'course' in request.json else None
         grade = request.json['grade'] if 'grade' in request.json else None
 
@@ -222,7 +322,11 @@ def update_grade():
 @app.route('/grade', methods=['DELETE'])
 def delete_grade():
     try:
-        utorid = request.json['utorid'] if 'utorid' in request.json else None
+        authorization_header = request.headers.get("Authorization")
+        the_doc = TOKEN.find_one({
+            "token": authorization_header
+        })
+        utorid = the_doc['utorid']
         course = request.json['course'] if 'course' in request.json else None
 
         if not utorid or not course:
@@ -305,12 +409,17 @@ def signUp():
 @app.route('/team', methods=['POST'])
 def form_team():
     name = request.json['name'] if 'name' in request.json else None
-    utorid = request.json['utorid'] if 'utorid' in request.json else None
+    authorization_header = request.headers.get("Authorization")
+    the_doc = TOKEN.find_one({
+        "token": authorization_header
+    })
 
-    if not name or not utorid:
+    utorid = the_doc['utorid']
+
+    if not name:
         return {
             "status_code": 400,
-            "message": "utorid and name are required"
+            "message": "Name are required"
         }, 400
 
     # check if the team already exists.
@@ -319,9 +428,9 @@ def form_team():
     })
     if the_doc:
         return {
-            "status_code": 400,
+            "status_code": 409,
             "message": "Team already exists"
-        }, 400
+        }, 409
 
     # check if the utorid is already in a team.
     the_doc = TEAM.find_one({
@@ -334,17 +443,162 @@ def form_team():
         }, 400
     
     # create a team.
-    TEAM.insert_one({
+    result = TEAM.insert_one({
         "name": name, 
         "members": [utorid]
     })
 
+    # Retrieve the inserted document using its _id
+    new_team = TEAM.find_one({"_id": result.inserted_id})
+
+    # make the_doc a json object with name and members.
+
     return {
         "status_code": 200,
-        "message": f'Team {name} created successfully'
+        "message": f'Team {name} created successfully',
+        "team": json.loads(json_util.dumps(new_team))
     }, 200
 
 
+
+@app.route('/team', methods=['PUT'])
+def join_team():
+    name = request.json['name'] if 'name' in request.json else None
+    authorization_header = request.headers.get("Authorization")
+    the_doc = TOKEN.find_one({
+        "token": authorization_header
+    })
+
+    utorid = the_doc['utorid']
+
+    if not name:
+        return {
+            "status_code": 400,
+            "message": "Name are required"
+        }, 400
+
+    # check if the team already exists.
+    the_doc = TEAM.find_one({
+        "name": name
+    })
+    if not the_doc:
+        return {
+            "status_code": 404,
+            "message": "Team doesn't exist."
+        }, 404
+
+    # check if the utorid is already in a team.
+    the_doc = TEAM.find_one({
+        "members": {"$in": [utorid]}
+    })
+    if the_doc:
+        return {
+            "status_code": 400,
+            "message": "You are already in a team"
+        }, 400
+    # make the_doc a json object with name and members.
+    TEAM.update_one({
+        "name": name
+    }, {
+        "$push": {
+            "members": utorid
+        }
+    })
+
+    return {
+        "status_code": 200,
+        "message": f'Joined team: {name} successfully'
+    }, 200
+
+
+# leave a team
+@app.route('/leaveTeam', methods=['PUT'])
+def leave_team():
+    # load utorid.
+    authorization_header = request.headers.get("Authorization")
+    the_doc = TOKEN.find_one({
+        "token": authorization_header
+    })
+    utorid = the_doc['utorid']
+
+
+    # check if the utorid is already in a team.
+    the_doc = TEAM.find_one({
+        "members": {"$in": [utorid]}
+    })
+
+    if not the_doc:
+        return {
+            "status_code": 400,
+            "message": "You are not in a team"
+        }, 400
+
+    # remove the utorid from the team. But if the team only has one member, delete the team.
+    if len(the_doc['members']) == 1:
+        TEAM.delete_one({
+            "_id": the_doc['_id']
+        })
+    else:
+        TEAM.update_one({
+            "_id": the_doc['_id']
+        }, {
+            "$pull": {
+                "members": utorid
+            }
+        })
+
+    return {
+        "status_code": 200,
+        "message": "You have left the team"
+    }, 200
+
+
+# get all teams
+@app.route('/teams', methods=['GET'])
+def get_all_teams():
+    # return all teams.
+    teams = TEAM.find({})
+
+    team_list = []
+
+    for team in teams:
+        team_list.append(team['name'])
+
+    return {
+        "status_code": 200,
+        "message": "Teams retrieved successfully",
+        "teams": team_list
+    }, 200
+
+
+# get my team members
+@app.route('/teamMembers', methods=['GET'])
+def get_my_team_members():
+    # load utorid from params.
+    authorization_header = request.headers.get("Authorization")
+    the_doc = TOKEN.find_one({
+        "token": authorization_header
+    })
+    utorid = the_doc['utorid']
+
+    # check if the utorid is in a team.
+
+    the_doc = TEAM.find_one({
+        "members": {"$in": [utorid]}
+    })
+
+    if not the_doc:
+        return {
+            "status_code": 404,
+            "message": "You are not in a team"
+        }, 404
+
+    # return the team members.
+    return {
+        "status_code": 200,
+        "message": "Team members retrieved successfully",
+        "members": the_doc['members']
+    }, 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=20112, debug=True, threaded=True)
