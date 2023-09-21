@@ -1,6 +1,7 @@
 package Gateway;
 import org.json.JSONException;
 import Entity.Grade;
+import Entity.Team;
 
 public interface GradeDB {
     // Question: The dependency can go inwards, so I feel we can use the Grade class here (which is entity).
@@ -10,4 +11,13 @@ public interface GradeDB {
     Grade[] getAllGrades(String utorid);
 
     Grade logGrade(String course, int grade) throws JSONException;
+
+    Team formTeam(String name) throws JSONException;
+
+    Team joinTeam(String name) throws JSONException;
+
+    Team getMyTeam() throws JSONException;
+
+    void leaveTeam() throws JSONException;
+
 }

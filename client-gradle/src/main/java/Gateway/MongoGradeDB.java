@@ -1,12 +1,15 @@
 package Gateway;
-import Entity.Grade;
+import Entity.*;
 import okhttp3.*;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 
 public class MongoGradeDB implements GradeDB {
     private static final String API_URL = "https://grade-logging-api.chenpan.ca/api/grade";
+    // load API_TOKEN from env variable.
+    private static final String API_TOKEN = System.getenv("API_TOKEN");
 
     @Override
     public Grade getGrade(String utorid, String course) {
@@ -14,7 +17,7 @@ public class MongoGradeDB implements GradeDB {
                 .build();
         Request request = new Request.Builder()
                 .url(String.format("https://grade-logging-api.chenpan.ca/grade?course=%s&utorid=%s", course, utorid))
-                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Authorization", API_TOKEN)
                 .addHeader("Content-Type", "application/json")
                 .build();
         try {
@@ -57,7 +60,7 @@ public class MongoGradeDB implements GradeDB {
         Request request = new Request.Builder()
                 .url("https://grade-logging-api.chenpan.ca/grade")
                 .method("POST", body)
-                .addHeader("Authorization", "qRQxwHHpN32cc0YMW1T01T0j6J60aJnP")
+                .addHeader("Authorization", API_TOKEN)
                 .addHeader("Content-Type", "application/json")
                 .build();
 
@@ -74,5 +77,111 @@ public class MongoGradeDB implements GradeDB {
         catch (IOException | JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Team formTeam(String name) throws JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("name", name);
+        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+        Request request = new Request.Builder()
+                .url("https://grade-logging-api.chenpan.ca/team")
+                .method("POST", body)
+                .addHeader("Authorization", API_TOKEN)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            JSONObject responseBody = new JSONObject(response.body().string());
+
+            if (responseBody.getInt("status_code") == 200) {
+                JSONObject team = responseBody.getJSONObject("team");
+                JSONArray membersArray = team.getJSONArray("members");
+                String[] members = new String[membersArray.length()];
+                for (int i = 0; i < membersArray.length(); i++) {
+                    members[i] = membersArray.getString(i);
+                }
+
+                return Team.builder()
+                        .name(team.getString("name"))
+                        .members(members)
+                        .build();
+            } else {
+                throw new RuntimeException(responseBody.getString("message"));
+            }
+        }
+        catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public Team joinTeam(String name) throws JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("name", name);
+        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+        Request request = new Request.Builder()
+                .url("https://grade-logging-api.chenpan.ca/team")
+                .method("PUT", body)
+                .addHeader("Authorization", API_TOKEN)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            JSONObject responseBody = new JSONObject(response.body().string());
+
+            if (responseBody.getInt("status_code") == 200) {
+                return null;
+            } else {
+                throw new RuntimeException(responseBody.getString("message"));
+            }
+        }
+        catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void leaveTeam() throws JSONException {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+        JSONObject requestBody = new JSONObject();
+        RequestBody body = RequestBody.create(mediaType, requestBody.toString());
+        Request request = new Request.Builder()
+                .url("https://grade-logging-api.chenpan.ca/leaveTeam")
+                .method("PUT", body)
+                .addHeader("Authorization", API_TOKEN)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            JSONObject responseBody = new JSONObject(response.body().string());
+
+            if (responseBody.getInt("status_code") == 200) {
+                return;
+            } else {
+                throw new RuntimeException(responseBody.getString("message"));
+            }
+        }
+        catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    // TODO: Implement this method
+    public Team getMyTeam() {
+        return null;
     }
 }

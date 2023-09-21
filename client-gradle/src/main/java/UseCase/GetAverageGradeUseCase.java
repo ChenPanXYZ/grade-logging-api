@@ -10,14 +10,9 @@ public final class GetAverageGradeUseCase {
         this.gradeDB = gradeDB;
     }
 
-    public float getAverageGrade(String utorid) {
-        Grade[] grades = gradeDB.getAllGrades(utorid);
-        // Need to calculate the average. every grade has a field called grade (which is an int).
-        // We need to sum all the grades and divide by the number of grades.
-        int sum = 0;
-        for (Grade grade : grades) {
-            sum += grade.getGrade();
-        }
-        return sum / grades.length;
+    public float getAverageGrade(String course) {
+        // TODO: Get average grade for all students in your team.
+        // Some useful gateways: 1. get my team [Not Written]. 2. get grade.
+        return 0; // not correct.
     }
 }
