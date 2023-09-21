@@ -11,7 +11,6 @@ Rcord a grade of a course for a utorid.
 **Required Request Body**
 ```json
 {
-    "utorid": "The utorid",
     "course": "The course code",
     "grade": "The grade to log"
 }

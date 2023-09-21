@@ -1,25 +1,22 @@
-# Delete a grade
+# Record a grade
 
-Delete a grade of a course for a utorid.
+Rcord a grade of a course for a utorid.
 
-**URL** : `/grade`
+**URL** : `/team`
 
-**Method** : `DELETE`
+**Method** : `PUT`
 
 **Auth required** : Required in header `Authorization`.
 
 **Required Request Body**
-
 ```json
 {
-    "utorid": "The utorid",
-    "course": "The course code",
+    "name": "The team name"
 }
 ```
-
 ## Success Responses
 
-**Condition** : Access to the utorid is verified by the authorization token, and a grade for the course has been logged before (so there is something to delete).
+**Condition** : Access to the utorid is verified by the authorization token, and a grade for the course has not been logged before.
 
 **Code** : `200 OK`
 
@@ -27,16 +24,31 @@ Delete a grade of a course for a utorid.
 
 ```json
 {
-    "message": "Grade deleted successfully",
+    "message": "Joined team: {name}: successfully",
     "status_code": 200
 }
 ```
 
 ## Error Response
 
-### Grade not exist
+### Grade already exists.
 
-**Condition** : The grade of this course for this student doesn't exist.
+**Condition** : Already in a team.
+
+**Code** : `400 BAD REQUEST`
+
+**Content example** :
+
+```json
+{
+    "message": "You are already in a team",
+    "status_code": 400
+}
+```
+
+### Grade is not valid.
+
+**Condition** : Team doesn't exist.
 
 **Code** : `404 NOT FOUND`
 
@@ -44,8 +56,8 @@ Delete a grade of a course for a utorid.
 
 ```json
 {
-    "message": "The grade does not exist, there's no need to delete it.",
-    "status_code": 404
+    "message": "Team doesn't exist.",
+    "status_code": 400
 }
 ```
 
@@ -68,12 +80,3 @@ Delete a grade of a course for a utorid.
 **Condition** : The backend server has an issue.
 
 **Code** : `500 Internal Server Error`
-
-**Content example** :
-
-```json
-{
-   "status_code": 500,
-   "message": "Error retrieving grade"
-}, 500
-```
