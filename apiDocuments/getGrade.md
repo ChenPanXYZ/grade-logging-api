@@ -1,8 +1,6 @@
 # Get a grade
 
-Get a grade of a course.
-
-** TODO: make `course` optional. If course is not specified, all grades should be returned.
+Get a grade for a course for a specific UTORid. One can only access grades for themselves or the others in the same team.
 
 **URL** : `/grade`
 
@@ -53,7 +51,7 @@ Get a grade of a course.
 
 ### API Token is invalid
 
-**Condition** : The given authorization token doesn't match with the ones that have the access to the utorid. Or the authorization token doesn't exist. Students need to log in their teach lab account to see the token at https://wwwcgi.teach.cs.toronto.edu/~csc207h/cgi-bin/fall/test/test-cgi.
+**Condition** : The given authorization token doesn't match with the ones that have the access to the utorid. Or the authorization token doesn't exist. Students need to log in their teach lab account to see the token at https://grade-logging-api.chenpan.ca/signUp?utorid=
 **Code** : `401`
 
 **Content example** :
@@ -64,15 +62,6 @@ Get a grade of a course.
     "status_code": 401
 }
 ```
-
-### Server Error
-
-**Condition** : The backend server has an issue.
-
-**Code** : `500 Internal Server Error`
-
-**Content example** :
-
 ```json
 {
    "status_code": 500,
