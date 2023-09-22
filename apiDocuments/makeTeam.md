@@ -1,4 +1,5 @@
 
+
 # Make a team
 
 Make a team (everyone in the same team can see each other's grades...)
@@ -26,7 +27,7 @@ Make a team (everyone in the same team can see each other's grades...)
 
 ```json
 {
-    "message": "Grade updated successfully",
+    "message": "Team {name} created successfully",
     "status_code": 200
 }
 ```
@@ -43,28 +44,28 @@ Make a team (everyone in the same team can see each other's grades...)
 
 ```json
 {
-    "message": "Team TAs created successfully",
-    "status_code": 200
+    "message": "ou are already in a team. You can't form a new team until you leave your current team.",
+    "status_code": 400
 }
 ```
 
 ### Team name is not available
 **Condition** : The team name is not available.
 
-**Code** : `400 BAD REQUEST`
+**Code** : `409 Conflict`
 
 **Content example** :
 
 ```json
 {
     "message": "Team already exists",
-    "status_code": 400
+    "status_code": 409
 }
 ```
 
 ### API Token is invalid
 
-**Condition** : The given authorization token doesn't match with the ones that have the access to the utorid. Or the authorization token doesn't exist. Students need to log in their teach lab account to see the token at https://wwwcgi.teach.cs.toronto.edu/~csc207h/cgi-bin/fall/test/test-cgi.
+**Condition** : The given authorization token doesn't match with the ones that have the access to the utorid. Or the authorization token doesn't exist. Students need to log in their teach lab account to see the token at https://grade-logging-api.chenpan.ca/signUp?utorid=
 **Code** : `401`
 
 **Content example** :
@@ -76,17 +77,3 @@ Make a team (everyone in the same team can see each other's grades...)
 }
 ```
 
-### Server Error
-
-**Condition** : The backend server has an issue.
-
-**Code** : `500 Internal Server Error`
-
-**Content example** :
-
-```json
-{
-   "status_code": 500,
-   "message": "Error retrieving grade"
-}, 500
-```
