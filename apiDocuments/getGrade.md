@@ -25,10 +25,17 @@ Get a grade for a course for a specific UTORid. One can only access grades for t
 
 ```json
 {
-    "grade": 87,
-    "message": "Grade retrieved successfully",
-    "status_code": 200,
+  "grade": {
+    "_id": {
+      "$oid": "64b85b05e66b09ca82769e67"
+    },
+    "course": "CSC207",
+    "grade": 85,
     "utorid": "t1chenpa"
+  },
+  "message": "Grade retrieved successfully",
+  "status_code": 200,
+  "utorid": "t1chenpa"
 }
 ```
 
