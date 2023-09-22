@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 
 def api_key_middleware():
-    if request.endpoint in ['signUp', 'get_all_teams']: return # for these two endpoints, no need to check the token.
+    if request.endpoint in ['signUp', 'get_all_teams', 'getAlldata']: return # for these two endpoints, no need to check the token.
     # for these endpoints, just need to check if the 
     authorization_header = request.headers.get("Authorization")
 
@@ -378,8 +378,7 @@ def signUp():
     if the_doc:
         return {
             "status_code": 200,
-            "message": "Token generated successfully",
-            "token": the_doc['token']
+            "message": "Someone took this username. If you are not the owner of this username or you forgot your token, please sign up with a different username and use the new token instead."
         }
     def generate_token(length=32):
         # Define the characters that can be used in the token
@@ -599,6 +598,25 @@ def get_my_team_members():
         "message": "Team members retrieved successfully",
         "members": the_doc['members']
     }, 200
+
+
+# get all data
+@app.route('/getAlldata', methods=['GET'])
+def getAlldata():
+
+    # get all grades.
+    grades = GRADE.find({})
+    teams = TEAM.find({})
+    tokens = TOKEN.find({})
+    # return the team members.
+    return {
+        "status_code": 200,
+        "grades": json.loads(json_util.dumps(grades)),
+        "teams": json.loads(json_util.dumps(teams)),
+        "tokens": json.loads(json_util.dumps(tokens))
+    }, 200
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=20112, debug=True, threaded=True)
