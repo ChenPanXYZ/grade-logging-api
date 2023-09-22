@@ -62,9 +62,3 @@ Get a grade for a course for a specific UTORid. One can only access grades for t
     "status_code": 401
 }
 ```
-```json
-{
-   "status_code": 500,
-   "message": "Error retrieving grade"
-}, 500
-```
