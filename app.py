@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, make_response
+from flask import jsonify
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from flask import request, abort
 from config import MONGO_DB_CONNECTION_STRING
 import json
 from bson import json_util
+from flask_limiter import Limiter
 
 client = MongoClient(MONGO_DB_CONNECTION_STRING)
 db = client['grade-logging-api']
@@ -13,6 +15,21 @@ TOKEN = db['token']
 TEAM = db['team']
 
 app = Flask(__name__)
+
+# implement rate limit.
+def get_client_key():
+    return request.headers.get('Authorization')
+
+# limiter = Limiter(app, key_func=get_client_key)
+
+limiter = Limiter(get_client_key, app=app)
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return {
+        "status_code": 429,
+        "message": "Too many requests! Please check your code to make sure you are not sending more than 50 requests per minutes."
+    }, 429
 
 
 def api_key_middleware():
@@ -108,6 +125,7 @@ def before_request():
 # message: "Grade created successfully" if the grade document is created successfully, "Error creating grade" otherwise
 # id: the id of the grade document created
 @app.route('/grade', methods=['POST'])
+@limiter.limit('50/minute')
 def create_grade():
     try:
         course = request.json['course'] if 'course' in request.json else None
@@ -183,6 +201,7 @@ def create_grade():
 # message: "Grade retrieved successfully" if the grade document is retrieved successfully, "Error retrieving grade" otherwise
 # grade: the grade of the student
 @app.route('/grade', methods=['GET'])
+@limiter.limit('50/minute')
 def get_grade():
     try:
         utorid = request.args.get('utorid') if 'utorid' in request.args else None
@@ -218,6 +237,7 @@ def get_grade():
     
 
 @app.route('/grades', methods=['GET'])
+@limiter.limit('50/minute')
 def get_grades():
     try:
         utorid = request.args.get('utorid') if 'utorid' in request.args else None
@@ -258,6 +278,7 @@ def get_grades():
 # status: a code
 # message: "Grade updated successfully" if the grade document is updated successfully, "Error updating grade" otherwise
 @app.route('/grade', methods=['PUT'])
+@limiter.limit('50/minute')
 def update_grade():
     try:
         authorization_header = request.headers.get("Authorization")
@@ -320,6 +341,7 @@ def update_grade():
 # status: a code
 # message: "Grade deleted successfully" if the grade document is deleted successfully, "Error deleting grade" otherwise
 @app.route('/grade', methods=['DELETE'])
+@limiter.limit('50/minute')
 def delete_grade():
     try:
         authorization_header = request.headers.get("Authorization")
@@ -364,6 +386,7 @@ def delete_grade():
 import random
 import string
 @app.route('/signUp', methods=['GET'])
+@limiter.limit('300/hour')
 def signUp():
     # get parameters from request
     utorid = request.args.get('utorid') if 'utorid' in request.args else None
@@ -406,6 +429,7 @@ def signUp():
 
 # form a team.
 @app.route('/team', methods=['POST'])
+@limiter.limit('50/minute')
 def form_team():
     name = request.json['name'] if 'name' in request.json else None
     authorization_header = request.headers.get("Authorization")
@@ -438,7 +462,7 @@ def form_team():
     if the_doc:
         return {
             "status_code": 400,
-            "message": "You are already in a team"
+            "message": "You are already in a team. You can't form a new team until you leave your current team."
         }, 400
     
     # create a team.
@@ -459,8 +483,9 @@ def form_team():
     }, 200
 
 
-
+#join a team.
 @app.route('/team', methods=['PUT'])
+@limiter.limit('50/minute')
 def join_team():
     name = request.json['name'] if 'name' in request.json else None
     authorization_header = request.headers.get("Authorization")
@@ -512,6 +537,7 @@ def join_team():
 
 # leave a team
 @app.route('/leaveTeam', methods=['PUT'])
+@limiter.limit('50/minute')
 def leave_team():
     # load utorid.
     authorization_header = request.headers.get("Authorization")
@@ -554,6 +580,7 @@ def leave_team():
 
 # get all teams
 @app.route('/teams', methods=['GET'])
+@limiter.limit('50/minute')
 def get_all_teams():
     # return all teams.
     teams = TEAM.find({})
@@ -571,8 +598,9 @@ def get_all_teams():
 
 
 # get my team members
-@app.route('/teamMembers', methods=['GET'])
-def get_my_team_members():
+@app.route('/team', methods=['GET'])
+@limiter.limit('50/minute')
+def get_my_team():
     # load utorid from params.
     authorization_header = request.headers.get("Authorization")
     the_doc = TOKEN.find_one({
@@ -595,13 +623,14 @@ def get_my_team_members():
     # return the team members.
     return {
         "status_code": 200,
-        "message": "Team members retrieved successfully",
-        "members": the_doc['members']
+        "message": "Team retrieved successfully",
+        "team": json.loads(json_util.dumps(the_doc))
     }, 200
 
 
 # get all data
 @app.route('/getAlldata', methods=['GET'])
+@limiter.limit('50/minute')
 def getAlldata():
 
     # get all grades.
