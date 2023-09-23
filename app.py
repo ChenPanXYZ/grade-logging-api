@@ -7,6 +7,7 @@ from config import MONGO_DB_CONNECTION_STRING
 import json
 from bson import json_util
 from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 client = MongoClient(MONGO_DB_CONNECTION_STRING)
 db = client['grade-logging-api']
@@ -18,7 +19,18 @@ app = Flask(__name__)
 
 # implement rate limit.
 def get_client_key():
-    return request.headers.get('Authorization')
+    # check if it is signUp or not. If it is, use get_remote_address instead.
+
+    client_key = None
+
+    if request.endpoint in ['signUp', 'get_all_teams', 'getAlldata']: 
+        client_key = 'global'
+    else: 
+        client_key = request.headers.get('Authorization')
+
+    print(client_key)
+
+    return client_key
 
 # limiter = Limiter(app, key_func=get_client_key)
 
